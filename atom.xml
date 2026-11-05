@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Ruojun Wang</title>
+  <subtitle>Notes on LLM agents, reinforcement learning, and the occasional essay.</subtitle>
+  <link href="https://yuyuan12138.github.io/"/>
+  <link href="https://yuyuan12138.github.io/atom.xml" rel="self"/>
+  <id>https://yuyuan12138.github.io/</id>
+  <updated>2026-05-04T06:41:16Z</updated>
+  <entry>
+    <title>Hello World</title>
+    <link href="https://yuyuan12138.github.io/2026/05/04/hello-world/"/>
+    <id>https://yuyuan12138.github.io/2026/05/04/hello-world/</id>
+    <updated>2026-05-04T06:41:16Z</updated>
+    <content type="html">&lt;p&gt;Welcome to &lt;a target="_blank" rel="noopener" href="https://hexo.io/"&gt;Hexo&lt;/a&gt;! This is your very first post. Check &lt;a target="_blank" rel="noopener" href="https://hexo.io/docs/"&gt;documentation&lt;/a&gt; for more info. If you get any problems when using Hexo, you can find the answer in &lt;a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html"&gt;troubleshooting&lt;/a&gt; or you can ask me on &lt;a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues"&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id="Quick-Start"&gt;Quick Start&lt;/h2&gt;
+&lt;h3 id="Create-a-new-post"&gt;Create a new post&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;$ hexo new "My New Post"&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;More info: &lt;a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html"&gt;Writing&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="Run-server"&gt;Run server&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;$ hexo server&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;More info: &lt;a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html"&gt;Server&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="Generate-static-files"&gt;Generate static files&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;$ hexo generate&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;More info: &lt;a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html"&gt;Generating&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="Deploy-to-remote-sites"&gt;Deploy to remote sites&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;$ hexo deploy&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;More info: &lt;a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html"&gt;Deployment&lt;/a&gt;&lt;/p&gt;</content>
+  </entry>
+  <entry>
+    <title>Why smart people always lose at their 20 age.</title>
+    <link href="https://yuyuan12138.github.io/2026/02/16/why-smart-people-lose-at-20/"/>
+    <id>https://yuyuan12138.github.io/2026/02/16/why-smart-people-lose-at-20/</id>
+    <updated>2026-02-16T00:00:00Z</updated>
+    <content type="html">&lt;p&gt;You were the kid who learned to read early, the one adults called, mature for your age. School was easy. You didn’t study, but you still got A’s. Everyone told you, youhad so much potential. But now, you feel stuck, paralyzed, like you’re waiting for a future that never arrived. You look at your life and see half-finished projects. You feel lazy. You feel like a fraud. But here is the truth. You aren’t lazy. And you haven’t lost your intelligence. You are caught in a very specific psychological trap. By the end of this article, you will understand exactly why you stuck, and how to finally move forward.&lt;/p&gt;
+
+        &lt;p&gt;Society tells you that potential is a gift, but for the human brain, potential is actually a heavy burden. It’s not a promise of success. It’s a fear of failure disguised as a compliment.&lt;/p&gt;
+
+        &lt;p&gt;Let’s talk about the effort threat. As a child, you were prasied for being smart, not for working hard. You’re so clever, they said. This taught your brain a dangerous lesson. It taught you that success should be easy. So now, when things get difficult, you don’t just feel challenged. You feel threatened. If you have to try hard, it means you aren’t naturally smart anymore. So you stop trying. Psychology calls this the fixed mindset. You avoid the work to protect the label. It’s not laziness. It’s self-defense. Here’s what people get wrong about your procrastination. They think you don’t care. Actually, you take care too much. You are terrified of being average. You would rather not do the thing at all than do it and be just okay. In your mind, a zero is better than a 60%. Because a zero means I didn’t try. But a 60% means I tried and this is my limit. And that thought destroys you. So you choose the zero. You choose the safety of potential over the reality of doing.&lt;/p&gt;
+
+        &lt;p&gt;This leads to the second problem. “The taste gap”. Because you are smart, you have good taste. You know what good looks like. But because you never learn to struggle, your skills are not as good as your taste. You write the first sentence and you hate it. You start the project and it looks messy. A normal person thinks, I need to practice. But the former gifted kid thinks, I’ve lost it. You see the gap between what you want to do and what you can do. And instead of building a bridge, you jump off the cliff. You quit before you can be bad at something.&lt;/p&gt;
+
+        &lt;p&gt;So how do you fix this? You have to rewire your reward system. Here’s the frameword. The bad draft rule. One, give yourself permission to be average. Two, set a timer for 20 minutes. Three, your goal is not to do good work. Your goal is to do finished work. Write a bad paragraph. Draw a bad sketch. Code a broken app. Prove to your brain that the world doesn’t end when you aren’t perfect. Volume first, quality later.&lt;/p&gt;
+
+        &lt;p&gt;Carol Dweck’s research on mindset proves this. Children praised for intelligence tend to choose eaiser tasks to keep looking smart. Children praised for effort choose harder tasks because they want to learn. You are stuck in the first group, but the brain is plastic. It changes. You can move from a fixed mindset to a growth mindset, but only if you let fo of the need to be special. Listen to me. You are not broken. You were just praised for the wrong thing. So you were given a label that was too heavy to carry. It is OK to struggle. It is OK to be a beginner again. That unconfortable feeling, that isn’t failure. That is simply the feeling of learning.&lt;/p&gt;
+
+        &lt;p&gt;Being gifted was a description of your childhood. It is not a definition of your adulthood. Intelligence is not a status symbol to protect. It is a tool to use. And like any tool, it only works when you take it out of the box and get it dirty. Real smarts isn’t about knowing the answer instantly. It’s about staying with the problem longer than anyone else.&lt;/p&gt;
+
+        &lt;p&gt;So I will leave you with this question. If you took the label smart off the table, who would you actually be? Because the person underneath that label is the one who can actually build a life. Do you suffer from perfectionism doing nothing or burnout doing too much? Pick one! And if this article made you feel seen, bless you. We are building a new way to think…&lt;/p&gt;</content>
+  </entry>
+  <entry>
+    <title>Thinking of LLM of AI Patient Simulation</title>
+    <link href="https://yuyuan12138.github.io/2026/02/02/ai-patient-simulation/"/>
+    <id>https://yuyuan12138.github.io/2026/02/02/ai-patient-simulation/</id>
+    <updated>2026-02-02T02:10:19Z</updated>
+    <content type="html">&lt;p&gt;It is hard to generate a proper AI patient. However, the mental health is a really different region for Standarized patients, for most of the disorder is represented from the expression yet profile. Therefore, there are two parts should be considered.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;How should Standarized patient express?&lt;/li&gt;
+&lt;li&gt;What should he/she express?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="References"&gt;References&lt;/h2&gt;
+&lt;p&gt;&lt;a target="_blank" rel="noopener" href="https://aclanthology.org/2025.acl-long.846.pdf"&gt;LLMs Can Simulate Standardized Patients via Agent Coevolution&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The paper propose a framework called &lt;em&gt;EvoPatient&lt;/em&gt;, which a patient agent and doctor agents simulate the diagnostic process through multi-turn dialogues, simultaneously gathering experience to improve the quality of both questions and answers.&lt;/p&gt;</content>
+  </entry>
+  <entry>
+    <title>Welcome to my blog</title>
+    <link href="https://yuyuan12138.github.io/2026/01/20/welcome-to-my-blog/"/>
+    <id>https://yuyuan12138.github.io/2026/01/20/welcome-to-my-blog/</id>
+    <updated>2026-01-20T13:19:20Z</updated>
+    <content type="html">&lt;h2 id="Welcome"&gt;Welcome!&lt;/h2&gt;
+&lt;p&gt;This is my first blog post, and I’m excited to share my journey with you.&lt;/p&gt;
+&lt;h3 id="Why-Jekyll-and-GitHub-Pages"&gt;Why Jekyll and GitHub Pages?&lt;/h3&gt;
+&lt;p&gt;I chose Jekyll for this blog because:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Simple&lt;/strong&gt;: No database needed, just Markdown files&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Fast&lt;/strong&gt;: Static HTML generation for quick loading&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Free&lt;/strong&gt;: GitHub Pages hosting at no cost&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Version Control&lt;/strong&gt;: Git-based content management&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="What-You’ll-Find-Here"&gt;What You’ll Find Here&lt;/h3&gt;
+&lt;p&gt;I’ll be writing about:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Web development&lt;/li&gt;
+&lt;li&gt;Programming tips&lt;/li&gt;
+&lt;li&gt;Technology tutorials&lt;/li&gt;
+&lt;li&gt;Personal projects&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="Code-Syntax-Highlighting-Example"&gt;Code Syntax Highlighting Example&lt;/h3&gt;
+&lt;p&gt;Here’s an example of Python code with syntax highlighting:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;def hello_world():
+    """Print a greeting message."""
+    print("Hello, World!")
+
+if __name__ == "__main__":
+    hello_world()&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And here’s some JavaScript:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;function greet(name) {
+  return `Hello, ${name}!`;
+}
+
+console.log(greet('World'));&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id="Dark-Mode-Support"&gt;Dark Mode Support&lt;/h3&gt;
+&lt;p&gt;This blog supports dark mode! Click the moon/sun icon in the bottom-right corner to toggle between light and dark themes.&lt;/p&gt;
+&lt;h3 id="Stay-Tuned"&gt;Stay Tuned&lt;/h3&gt;
+&lt;p&gt;Thanks for reading! Subscribe to the &lt;a href="/atom.xml"&gt;RSS feed&lt;/a&gt; to stay updated with new posts.&lt;/p&gt;</content>
+  </entry>
+  <entry>
+    <title>Autodiff</title>
+    <link href="https://yuyuan12138.github.io/2026/01/20/autodiff/"/>
+    <id>https://yuyuan12138.github.io/2026/01/20/autodiff/</id>
+    <updated>2026-01-20T13:29:52Z</updated>
+    <content type="html">&lt;p&gt;So I want to use python to recode an example of dynamic calculation graph.&lt;/p&gt;</content>
+  </entry>
+</feed>
