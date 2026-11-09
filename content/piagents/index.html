@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20fill='%230a0a0a'/%3E%3Ctext%20x='16'%20y='22.5'%20font-family='Menlo,Consolas,monospace'%20font-size='18'%20fill='%23dbe2ec'%20text-anchor='middle'%3E%CF%80%3C/text%3E%3C/svg%3E">
+<title>PiAgents — one router conversation, dozens of AI workers</title>
+<meta name="description" content="PiAgents is a personal operating system that turns one conversation into a dispatcher and verifier. Correctness comes from architecture, not model IQ.">
+<style>
+  :root{
+    --bg: hsl(0,0%,4%);
+    --panel: hsl(0,0%,7%);
+    --ink: hsl(222,19%,86%);
+    --body: hsl(220,8%,68%);
+    --muted: hsl(216,6%,58%);
+    --line: hsl(220,9%,16%);
+    --line-strong: hsl(220,8%,26%);
+    --accent: hsl(22,100%,52%);
+    --btn-ink: hsl(0,0%,6%);
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+  *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+  h1,h2,h3{ text-wrap:balance; }
+  p{ text-wrap:pretty; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:17px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  ::selection{ background:hsl(22,100%,52%,.28); color:var(--ink); }
+  a{ color:inherit; }
+  a:focus-visible,.btn:focus-visible{
+    outline:2px solid var(--accent); outline-offset:3px; border-radius:1px;
+  }
+  .skip{
+    position:absolute; left:-9999px; top:0; z-index:100;
+    background:var(--ink); color:var(--btn-ink);
+    padding:10px 16px; font-size:.85rem; text-decoration:none;
+  }
+  .skip:focus-visible,.skip:focus{ left:12px; top:12px; }
+
+  .wrap{ max-width:1060px; margin:0 auto; padding:0 24px; }
+
+  /* ---------- mono tag (x.ai mono-tag pattern) ---------- */
+  .tag{
+    font-family:var(--mono);
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  /* ---------- header ---------- */
+  header{
+    border-bottom:1px solid var(--line);
+    position:sticky; top:0; z-index:10;
+    background:hsla(0,0%,4%,.92);
+    backdrop-filter:blur(6px);
+  }
+  .bar{ display:flex; align-items:center; justify-content:space-between; min-height:60px; }
+  .brand{ font-family:var(--mono); font-size:.85rem; letter-spacing:.08em; text-decoration:none; }
+  .brand span{ color:var(--muted); }
+  nav{ display:flex; gap:28px; flex-wrap:wrap; justify-content:flex-end; row-gap:4px; }
+  nav a{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--muted); text-decoration:none;
+  }
+  nav a{ transition:color .15s ease; }
+  nav a:hover{ color:var(--ink); }
+
+  /* ---------- sections: clear the sticky header on anchor jumps ---------- */
+  section{ scroll-margin-top:72px; }
+
+  /* ---------- hero ---------- */
+  .hero{ padding:88px 0 96px; }
+  .kicker{
+    display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    padding-bottom:20px; margin-bottom:44px; border-bottom:1px solid var(--line);
+  }
+  h1{
+    font-size:clamp(3rem, 8vw, 5.4rem);
+    font-weight:600; letter-spacing:-.032em; line-height:1.02;
+    margin-bottom:30px;
+  }
+  .pitch{
+    font-size:clamp(1.3rem, 2.8vw, 1.78rem);
+    line-height:1.38; letter-spacing:-.012em;
+    max-width:21em; margin-bottom:22px;
+  }
+  .pitch em{ font-style:normal; color:var(--body); }
+  .intro{ max-width:66ch; color:var(--body); margin-bottom:40px; }
+  .intro strong{ font-weight:500; color:var(--ink); }
+  .cta{ display:flex; gap:14px; flex-wrap:wrap; }
+  .btn{
+    display:inline-block; padding:13px 24px; border-radius:2px;
+    font-size:.95rem; font-weight:500; letter-spacing:.01em;
+    text-decoration:none; border:1px solid transparent;
+    transition:border-color .2s, background-color .2s;
+  }
+  .btn-primary{ background:var(--ink); color:var(--btn-ink); }
+  .btn-primary:hover{ background:hsl(0,0%,96%); }
+  .btn-ghost{ border-color:var(--line-strong); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--muted); background:hsl(0,0%,8%); }
+  .meta-row{
+    margin-top:52px; padding-top:18px; border-top:1px solid var(--line);
+    display:flex; gap:12px 32px; flex-wrap:wrap;
+  }
+
+  /* ---------- sections ---------- */
+  section{ border-top:1px solid var(--line); padding:88px 0 96px; }
+  .sec-head{ margin-bottom:52px; }
+  .sec-head .tag{ display:block; margin-bottom:16px; }
+  h2{
+    font-size:clamp(1.7rem, 3.6vw, 2.35rem);
+    font-weight:600; letter-spacing:-.018em; line-height:1.22;
+    max-width:26em;
+  }
+  .sec-head p{ margin-top:14px; color:var(--body); max-width:66ch; }
+
+  /* ---------- capability cards ---------- */
+  .grid-2x2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .card{
+    border:1px solid var(--line); border-radius:0;
+    padding:30px 30px 32px;
+    transition:border-color .2s;
+  }
+  .card:hover{ border-color:var(--line-strong); }
+  .card .tag{ display:block; margin-bottom:14px; }
+  .card h3{ font-size:1.2rem; font-weight:600; letter-spacing:-.01em; margin-bottom:12px; }
+  .card p{ color:var(--body); font-size:.98rem; }
+  .card p strong{ font-weight:500; color:var(--ink); }
+  .fig{
+    font-family:var(--mono); font-size:.88em;
+    letter-spacing:-.01em; color:var(--ink);
+  }
+
+  /* ---------- diagram ---------- */
+  .diagram{ max-width:880px; margin:0 auto; }
+  .dnode{
+    background:var(--panel); border:1px solid var(--line);
+    padding:22px 26px;
+  }
+  .dnode .dname{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink);
+  }
+  .dnode .ddesc{ margin-top:8px; color:var(--body); font-size:.92rem; }
+  .dnode-user{ max-width:420px; margin:0 auto; text-align:center; padding:16px 22px; }
+  .dnode-router{ border-color:var(--line-strong); }
+  .dnode-router .dhead{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .dnode-router .flag{ color:var(--accent); }
+  .duty{ margin-top:10px; color:var(--body); font-size:.92rem; }
+  .duty span{ color:var(--ink); }
+
+  .flow{
+    width:1px; height:30px; margin:0 auto; background:var(--line-strong);
+    position:relative;
+  }
+  .flow::after{
+    content:""; position:absolute; left:50%; bottom:-1px; transform:translateX(-50%);
+    border-left:4px solid transparent; border-right:4px solid transparent;
+    border-top:5px solid var(--line-strong);
+  }
+  .flow-label{
+    text-align:center; margin:10px 0 12px;
+    font-family:var(--mono); font-size:.7rem; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--muted);
+  }
+  .fan{
+    display:grid; grid-template-columns:repeat(3,1fr);
+    position:relative; padding-top:26px;
+  }
+  .fan > .dnode{ margin:0 9px; }
+  .fan::before{
+    content:""; position:absolute; top:0; left:16.66%; right:16.66%;
+    height:1px; background:var(--line-strong);
+  }
+  .fan > *{ position:relative; }
+  .fan > *::before{
+    content:""; position:absolute; top:0; left:50%; height:26px;
+    border-left:1px solid var(--line-strong);
+  }
+  .fan .dnode{ height:100%; }
+  .fan .dnode .ch-tag{
+    display:inline-block; margin-top:12px; padding:3px 8px;
+    border:1px solid var(--line); font-family:var(--mono); font-size:.7rem;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+  }
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .chip{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.06em;
+    color:var(--ink); border:1px solid var(--line-strong); padding:4px 10px;
+  }
+  .gates{ margin-top:12px; }
+  .gates li{
+    list-style:none; font-family:var(--mono); font-size:.76rem; letter-spacing:.04em;
+    color:var(--body); padding:7px 0; border-top:1px solid var(--line);
+  }
+  .gates li:first-child{ border-top:0; padding-top:0; }
+  .gates li span{ color:var(--ink); }
+  .mlayer{
+    display:flex; gap:16px; padding:9px 0; border-top:1px solid var(--line);
+    align-items:baseline;
+  }
+  .mlayer:first-of-type{ border-top:0; padding-top:0; }
+  .mlayer .idx{
+    font-family:var(--mono); font-size:.72rem; color:var(--muted); flex:0 0 22px;
+  }
+  .mlayer .mname{ font-size:.94rem; color:var(--ink); flex:0 0 158px; }
+  .mlayer .mdesc{ color:var(--body); font-size:.88rem; }
+  .dnode-optional{ border-style:dashed; background:transparent; margin-top:34px; }
+  .dcaption{
+    margin-top:20px; text-align:center; color:var(--muted); font-size:.85rem;
+  }
+
+  /* ---------- field notes ---------- */
+  .note{ display:flex; flex-direction:column; }
+  .note .num{
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink); margin-bottom:14px;
+  }
+  .note h3{ font-size:1.15rem; font-weight:600; letter-spacing:-.01em; margin-bottom:12px; }
+  .note p{ color:var(--body); font-size:.95rem; flex:1; }
+  .note p strong{ font-weight:500; color:var(--ink); }
+  .rule{
+    margin-top:18px; padding-top:14px; border-top:1px solid var(--line);
+    font-size:.9rem; color:var(--ink);
+  }
+  .rule .tag{ display:block; margin-bottom:6px; color:var(--accent); }
+
+  /* ---------- self-improvement loop ---------- */
+  .loop{
+    display:flex; align-items:stretch; flex-wrap:wrap; gap:0;
+    max-width:880px; margin:0 auto 18px;
+  }
+  .loop-node{
+    flex:1 1 0; min-width:118px;
+    border:1px solid var(--line-strong); padding:16px 10px 14px; text-align:center;
+    font-family:var(--mono); font-size:.74rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink);
+    margin-right:22px; position:relative;
+  }
+  .loop-node:last-child{ margin-right:0; }
+  .loop-node::after{
+    content:""; position:absolute; top:50%; right:-19px;
+    transform:translateY(-50%) rotate(90deg);
+    border-left:4px solid transparent; border-right:4px solid transparent;
+    border-top:5px solid var(--line-strong);
+  }
+  .loop-node:last-child::after{ display:none; }
+  .loop-node small{
+    display:block; margin-top:7px; font-size:.72rem; letter-spacing:.06em;
+    color:var(--muted); text-transform:none;
+  }
+  .loop-node.gate{ border-color:var(--accent); color:var(--accent); }
+  .loop-note{ max-width:72ch; margin:0 auto; color:var(--body); font-size:.98rem; }
+  .loop-note strong{ font-weight:500; color:var(--ink); }
+
+  /* ---------- footer ---------- */
+  footer{ border-top:1px solid var(--line); padding:56px 0 40px; }
+  .foot-top{ display:flex; justify-content:space-between; gap:32px; flex-wrap:wrap; margin-bottom:40px; }
+  .foot-brand{ font-family:var(--mono); font-size:.85rem; letter-spacing:.08em; }
+  .foot-brand span{ color:var(--muted); }
+  .foot-desc{ margin-top:10px; color:var(--body); font-size:.9rem; max-width:44ch; }
+  .foot-links{ display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; }
+  .foot-links a{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--muted); text-decoration:none; transition:color .15s ease;
+  }
+  .foot-links a:hover{ color:var(--ink); }
+  .honest{
+    padding:18px 0 0; border-top:1px solid var(--line);
+    display:flex; justify-content:space-between; gap:12px 24px; flex-wrap:wrap;
+  }
+  .honest p{ color:var(--body); font-size:.82rem; max-width:70ch; }
+  .honest .tag{ white-space:nowrap; }
+
+  /* ---------- reveal (JS optional, degrades to visible) ---------- */
+  @media (prefers-reduced-motion: no-preference){
+    html{ scroll-behavior:smooth; }
+    html.js .rv{ opacity:0; transform:translateY(14px); transition:opacity .6s ease, transform .6s ease; }
+    html.js .rv.in{ opacity:1; transform:none; }
+  }
+
+  /* ---------- mobile ---------- */
+  @media (max-width:860px){
+    .grid-2x2{ grid-template-columns:1fr; }
+    section{ padding:64px 0 72px; }
+    .hero{ padding:64px 0 72px; }
+    .loop{ flex-direction:column; gap:26px; max-width:460px; }
+    .loop-node{ margin-right:0; min-width:0; }
+    .loop-node::after{
+      right:auto; top:auto; bottom:-23px; left:50%;
+      transform:translateX(-50%) rotate(180deg);
+      border-left:4px solid transparent;
+      border-right:4px solid transparent;
+      border-top:5px solid var(--line-strong);
+    }
+  }
+  @media (max-width:420px){
+    /* nav anchors + brand suffix cannot fit a 320-420px bar without overflow */
+    .brand span{ display:none; }
+    nav a.xnav{ display:none; }
+  }
+  @media (max-width:720px){
+    nav{ gap:18px; }
+    .fan{ grid-template-columns:1fr; padding-top:0; gap:0; }
+    .fan::before{ display:none; }
+    .fan > *::before{ display:none; }
+    .fan > *{ margin-top:0; }
+    .fan .dnode{ margin:0; }
+    .fan .dnode:not(:first-child){ margin-top:30px; }
+    .fan .dnode:not(:first-child)::before{
+      content:""; display:block; width:1px; height:30px;
+      background:var(--line-strong); margin:0 auto;
+    }
+    .fan .dnode:not(:first-child)::after{
+      content:""; display:block; width:0; height:0;
+      margin:0 auto; border-left:4px solid transparent;
+      border-right:4px solid transparent; border-top:5px solid var(--line-strong);
+    }
+    .mlayer{ flex-wrap:wrap; gap:4px 12px; }
+    .mlayer .mname{ flex-basis:auto; }
+    .mlayer .mdesc{ flex-basis:100%; }
+    body{ font-size:16px; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#how">Skip to content</a>
+
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="#top">PIAGENTS<span> /</span> PERSONAL OS</a>
+    <nav>
+      <a class="xnav" href="#how">How it works</a>
+      <a class="xnav" href="#arch">Architecture</a>
+      <a class="xnav" href="#notes">Field notes</a>
+      <a href="https://github.com/yuyuan12138/Pi">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <div class="hero wrap">
+    <div class="kicker">
+      <span class="tag">Product announcement</span>
+      <span class="tag">Nov 2026</span>
+    </div>
+    <h1>PiAgents</h1>
+    <p class="pitch">One router conversation, dozens of AI workers — <em>correctness from architecture, not model IQ.</em></p>
+    <p class="intro">
+      PiAgents is a personal operating system that turns one conversation into a dispatcher and verifier.
+      The router <strong>writes briefs, dispatches, and accepts</strong>; clean-context subagents do all the
+      execution; every claim is re-checked against the filesystem before it counts. Everything is plain text —
+      Markdown rules, role templates, vendored extensions, a few small scripts. <strong>No hidden binaries, no cloud dependency.</strong>
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/yuyuan12138/Pi">Read the source</a>
+      <a class="btn btn-ghost" href="https://github.com/yuyuan12138/Pi/blob/main/ADOPTING.md">Adopt it in ~30 minutes</a>
+    </div>
+    <div class="meta-row">
+      <span class="tag">Verified on Pi 1.3.0</span>
+      <span class="tag">Runs on a mid-tier model — GLM-5.3-Flash via local vLLM</span>
+      <span class="tag">Any OpenAI-compatible endpoint</span>
+    </div>
+  </div>
+
+  <!-- ============ 01 HOW IT WORKS ============ -->
+  <section id="how">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <span class="tag">01 / How it works</span>
+        <h2>The router dispatches. The workers execute. The tests decide.</h2>
+        <p>Four subsystems, none of them trusting the others&rsquo; claims. The router never executes;
+        the workers never persist; the acceptance tests never move; memory never promotes itself.</p>
+      </div>
+      <div class="grid-2x2">
+        <div class="card rv">
+          <span class="tag">Zero inline execution</span>
+          <h3>Router</h3>
+          <p>The primary conversation <strong>never edits code</strong>. It understands requirements, writes
+          briefs, dispatches, and accepts — where acceptance means running the tests and reading the diff
+          itself, not reading a report.</p>
+        </div>
+        <div class="card rv">
+          <span class="tag">9 role briefs &middot; clean context &middot; disposable</span>
+          <h3>Workers</h3>
+          <p>All execution happens in short-lived subagents: <strong>scout, planner, coder, operator, reviewer,
+          researcher, visualizer, writer, designer</strong>. Each starts clean from a written brief and its own
+          skill file, reports milestones as messages, and is rebuilt for the next task.</p>
+        </div>
+        <div class="card rv">
+          <span class="tag">Best-of-N &middot; fixed acceptance tests</span>
+          <h3>Verification</h3>
+          <p>Bounded work runs as <strong class="fig">N=3 candidates</strong> in isolated copies against identical, fixed
+          acceptance tests — never weakened to make a candidate pass. A PASS report is a claim until it is
+          <strong>re-checked against real files, logs, and git</strong>.</p>
+        </div>
+        <div class="card rv">
+          <span class="tag">4 layers &middot; human-approved gates</span>
+          <h3>Memory</h3>
+          <p>Session observations, a daily decision log, distilled concepts, and a sourced wiki — searched by an
+          offline SQLite FTS5 index. A lesson goes global only with <strong>evidence from two projects and
+          explicit user approval</strong>; unapproved content stays local.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 ARCHITECTURE ============ -->
+  <section id="arch">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <span class="tag">02 / Architecture</span>
+        <h2>The whole flow, one screen.</h2>
+        <p>Verified results are the only thing that moves downward. The optional cross-project layer routes
+        between project primaries through an explicit registry, FIFO queues, and a single-writer lease.</p>
+      </div>
+
+      <div class="diagram rv">
+        <div class="dnode dnode-user">
+          <div class="dname">User</div>
+          <div class="ddesc">requirements &middot; decisions &middot; final acceptance</div>
+        </div>
+        <div class="flow" aria-hidden="true"></div>
+
+        <div class="dnode dnode-router">
+          <div class="dhead">
+            <span class="dname">Primary conversation = router</span>
+            <span class="dname flag">Zero inline execution</span>
+          </div>
+          <p class="duty">One per project, cwd = project root. Only does:
+          <span>requirements &middot; written briefs &middot; decisions &middot; acceptance &middot;
+          cross-module integration</span></p>
+        </div>
+        <div class="flow" aria-hidden="true"></div>
+        <div class="flow-label">Dispatch via three channels</div>
+
+        <div class="fan">
+          <div class="dnode">
+            <div class="dname">subagent_spawn</div>
+            <div class="ddesc">Background headless workers. Milestone reports arrive as messages — the router
+            never polls and never holds a turn open.</div>
+            <span class="ch-tag">Default</span>
+          </div>
+          <div class="dnode">
+            <div class="dname">fork</div>
+            <div class="ddesc">Copies the active session branch into an isolated worktree. For context-heavy
+            work, by stated exception only.</div>
+            <span class="ch-tag">By exception</span>
+          </div>
+          <div class="dnode">
+            <div class="dname">sync subagent</div>
+            <div class="ddesc">Short advisor and reviewer opinions, quick bounded checks.</div>
+            <span class="ch-tag">Pending retirement</span>
+          </div>
+        </div>
+        <div class="flow" aria-hidden="true"></div>
+
+        <div class="dnode">
+          <div class="dname">Role briefs — 9 templates, not resident processes</div>
+          <div class="chips">
+            <span class="chip">scout</span><span class="chip">planner</span><span class="chip">coder</span><span class="chip">operator</span><span class="chip">reviewer</span><span class="chip">researcher</span><span class="chip">visualizer</span><span class="chip">writer</span><span class="chip">designer</span>
+          </div>
+          <p class="duty">Each: AGENTS.md brief + skills/ method + experience log.</p>
+        </div>
+        <div class="flow" aria-hidden="true"></div>
+
+        <div class="dnode">
+          <div class="dname">Verification gates</div>
+          <ul class="gates">
+            <li><span>best-of-N</span> on fixed acceptance tests</li>
+            <li>primary inspects <span>the actual diff</span></li>
+            <li><span>advisory ownership check</span> (tools/delegation_gate.py)</li>
+            <li><span>worker hardening</span> — no extensions/MCP/approve, credential denylist</li>
+          </ul>
+        </div>
+        <div class="flow" aria-hidden="true"></div>
+        <div class="flow-label">Verified results only</div>
+
+        <div class="dnode">
+          <div class="dname">Memory layers</div>
+          <div style="margin-top:12px">
+            <div class="mlayer"><span class="idx">01</span><span class="mname">Session observations</span><span class="mdesc">observations/reflections with hierarchical compaction</span></div>
+            <div class="mlayer"><span class="idx">02</span><span class="mname">Daily decision log</span><span class="mdesc">knowledge-base/daily/YYYY-MM-DD.md</span></div>
+            <div class="mlayer"><span class="idx">03</span><span class="mname">Distilled concepts</span><span class="mdesc">global requires 2+ projects of evidence and user approval</span></div>
+            <div class="mlayer"><span class="idx">04</span><span class="mname">Sourced wiki</span><span class="mdesc">confidence-tagged by whether the source was read</span></div>
+            <div class="mlayer"><span class="idx">+</span><span class="mname">pi-memory-index</span><span class="mdesc">cross-session SQLite FTS5 memory_search, credential-screened</span></div>
+          </div>
+        </div>
+
+        <div class="dnode dnode-optional">
+          <div class="dname">Cross-project coordination — optional</div>
+          <p class="duty">Project primaries &rarr; <span>pi-project-coordinator</span>: explicit-id registry
+          (never disk scanning) &middot; per-project FIFO queues &middot; single-writer lease &middot;
+          crash-safe journal (SQLite)</p>
+        </div>
+        <p class="dcaption">Guards are workflow constraints, not sandboxes. The full flow is plain text in the repository.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 FIELD NOTES ============ -->
+  <section id="notes">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <span class="tag">03 / Field notes</span>
+        <h2>Four incidents that became rules.</h2>
+        <p>None of these were intelligence problems. They were the gap between what a system said it did and
+        what it actually did — a gap no model upgrade closes.</p>
+      </div>
+      <div class="grid-2x2">
+        <div class="card note rv">
+          <span class="num">26 failing tests</span>
+          <h3>Blamed on the environment</h3>
+          <p>A commit record called 26 failing tests &ldquo;pre-existing environmental issues.&rdquo; A baseline
+          A/B on the same machine: restore the previous payload — <strong class="fig">394 passed, 0 failed</strong>; add
+          back one new file — exactly those <span class="fig">26</span> fail. The failure set moved with the file.</p>
+          <div class="rule"><span class="tag">Rule</span>A commit record&rsquo;s test numbers are claims, not evidence — re-derive them.</div>
+        </div>
+        <div class="card note rv">
+          <span class="num">465 requests &middot; 53 lying receipts</span>
+          <h3>The tool that lied 53 times</h3>
+          <p>A game-playing run read &ldquo;Dug stone, ok&rdquo; <strong class="fig">53 times</strong> while the server
+          credited <span class="fig">1 stone</span>. <span class="fig">72%</span> of the run went to bare-hand mining with zero yield. The fix was not a smarter
+          model — it was receipts that distinguish <strong>server_confirmed</strong> from
+          <strong>client_predicted</strong>.</p>
+          <div class="rule"><span class="tag">Rule</span>When results look wrong, don&rsquo;t upgrade the model — check whether the tools are lying.</div>
+        </div>
+        <div class="card note rv">
+          <span class="num">0 commits in git</span>
+          <h3>The worker that invented its homework</h3>
+          <p>A subagent reported four completed episodes and a commit containing the results. <strong>git log
+          had no such commit</strong>; the files were untouched. Acceptance changed: every claim is re-checked
+          against git and the filesystem, and an adversarial checker exists to prove the first worker wrong.</p>
+          <div class="rule"><span class="tag">Rule</span>Acceptance is a git diff and a test run, not a read.</div>
+        </div>
+        <div class="card note rv">
+          <span class="num">21 seconds</span>
+          <h3>Death of an episode</h3>
+          <p>The first fully automated A/B died <strong class="fig">21 seconds in</strong>. The autopsy cleared the suspect:
+          a known connection flake, then the episode&rsquo;s own teardown stopped the server gracefully, <span class="fig">exit 0</span>.
+          The driver&rsquo;s own zombie-reaping bug surfaced on the way. Test count went from <strong class="fig">57 to 84</strong>.</p>
+          <div class="rule"><span class="tag">Rule</span>Real systems bite back; the autopsy is part of the run.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 04 SELF-IMPROVEMENT ============ -->
+  <section id="loop">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <span class="tag">04 / Self-improvement</span>
+        <h2>The loop tunes the harness. The human keeps the gate.</h2>
+      </div>
+      <div class="loop rv" role="list">
+        <div class="loop-node" role="listitem">Error ledger<small>every failure, recorded</small></div>
+        <div class="loop-node" role="listitem">Hypothesis<small>falsifiable, hot-path only</small></div>
+        <div class="loop-node" role="listitem">Controlled A/B<small>on a real task environment</small></div>
+        <div class="loop-node gate" role="listitem">Accept gate<small>rule-based proposal</small></div>
+        <div class="loop-node" role="listitem">Apply<small>with revert procedure</small></div>
+      </div>
+      <p class="loop-note rv">
+        The loop has run in <strong>observe mode only</strong>: it records &ldquo;would accept&rdquo; decisions,
+        and live apply requires an explicit human flag. State checkpoints after every step; crashed experiments
+        are never replayed. There is deliberately <strong>no auto-accept</strong> — acceptance is the
+        human&rsquo;s, at the gate.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div>
+        <div class="foot-brand">PIAGENTS<span> /</span> PERSONAL OS</div>
+        <p class="foot-desc">A personal operating system for coordinating dozens of AI workers from one router
+        conversation. Core thesis: correctness comes from architecture, not model IQ.</p>
+      </div>
+      <div class="foot-links">
+        <a href="https://github.com/yuyuan12138/Pi">GitHub</a>
+        <a href="https://github.com/yuyuan12138/Pi/blob/main/ADOPTING.md">Adopting.md</a>
+        <a href="https://yuyuan12138.github.io/2026/11/09/pi-agent-architecture/">Architecture write-up</a>
+      </div>
+    </div>
+    <div class="honest">
+      <p>Honest limits: guards are workflow constraints, not sandboxes. Skills guide behavior; they enforce
+      nothing. Failures are reported as failures, never dressed up as success.</p>
+      <span class="tag">&copy; 2026 PiAgents</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.documentElement.classList.add('js');
+  (function(){
+    if (!('IntersectionObserver' in window)) {
+      document.querySelectorAll('.rv').forEach(function(el){ el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.rv').forEach(function(el){ io.observe(el); });
+  })();
+</script>
+
+</body>
+</html>

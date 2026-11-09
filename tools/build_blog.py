@@ -241,6 +241,7 @@ os.makedirs(OUT, exist_ok=True)
 # 1. Hand-authored sources, byte-identical: pages from content/, stylesheet from design/
 for src, dst in [("content/index.html", "index.html"),
                  ("design/style.css", "style.css"),
+                 ("content/piagents/index.html", "piagents/index.html"),
                  ("content/archives.html", "archives/index.html"),
                  ("content/2026/02/16/why-smart-people-lose-at-20/index.html",
                   "2026/02/16/why-smart-people-lose-at-20/index.html")]:
