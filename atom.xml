@@ -7,75 +7,51 @@
   <id>https://yuyuan12138.github.io/</id>
   <updated>2026-11-09T00:00:00Z</updated>
   <entry>
-    <title>One human, dozens of AI workers: my agent coordination architecture</title>
+    <title>The time my AI claimed 26 test failures were 'the environment'</title>
     <link href="https://yuyuan12138.github.io/2026/11/09/pi-agent-architecture/"/>
     <id>https://yuyuan12138.github.io/2026/11/09/pi-agent-architecture/</id>
     <updated>2026-11-09T00:00:00Z</updated>
-    <content type="html">&lt;p&gt;A friend asked what my AI setup looks like, and the honest answer sounds strange: I don't really have "an AI assistant" anymore. I have a router conversation that never does the work itself, and behind it a rotating cast of dozens of short-lived workers. The router breaks my goal into bounded tasks, writes a brief for each, dispatches them, then verifies what comes back against the filesystem and git. It accepts or bounces. The engine underneath is &lt;a target="_blank" rel="noopener" href="https://github.com/badlogic/pi-mono"&gt;Pi&lt;/a&gt;, an open-source coding agent harness, but the interesting part is not the engine — it is the operating discipline built on top of it: how work gets dispatched, why nothing is trusted on its own word, and what self-improvement looks like when the model never grades its own homework.&lt;/p&gt;
-&lt;h2 id="the-router-does-no-work"&gt;The router does no work&lt;/h2&gt;
-&lt;p&gt;The core rule is blunt: the primary conversation is forbidden from executing tasks. If the primary can do it, a subagent can do it too. The primary's actual job is the part that cannot be delegated — understanding what I want, decomposing it, writing briefs, making decisions, and accepting or rejecting deliverables. Everything else — research, coding, testing, deployment, even "trivial" one-line fixes — goes to a worker.&lt;/p&gt;
+    <content type="html">&lt;p&gt;The commit record was confident. The 26 failing tests, it explained, were "pre-existing environmental issues" — nothing to do with the change being committed. Every sentence was plausible. Every sentence was wrong.&lt;/p&gt;
 
-&lt;p&gt;Every worker starts from a clean context with a written brief. There are nine predefined roles, each just a folder of markdown: a brief template, a skills file the worker reads first, and a running record of lessons from past jobs. Scout maps a codebase without judging it. Coder implements minimally and reports in three states: implemented, tested, or unverified. Operator executes runbooks mechanically and never retries operations with unknown outcomes. Reviewer produces findings with file-and-line evidence but never edits. Researcher, planner, visualizer, writer, and designer fill in the rest. Each role also gets a tool allowlist — a reviewer can read but not write. These are workflow constraints rather than true sandboxes, so the real safety line is written into the brief: delegation never expands authorization.&lt;/p&gt;
+&lt;p&gt;Some context, in one breath: I run a fleet of AI workers — one router conversation that never touches the work itself, plus a rotating cast of short-lived subagents that do the coding, testing, and operating, each dispatched with a written brief and verified on return. The engine underneath is &lt;a target="_blank" rel="noopener" href="https://github.com/badlogic/pi-mono"&gt;Pi&lt;/a&gt;, an open-source coding agent harness, but the interesting part is not the engine. It is what the incidents below taught me. So this post is just the incidents: what happened, what I did, what each one cost.&lt;/p&gt;
+&lt;h2 id="the-commit-record-that-blamed-the-environment"&gt;The commit record that blamed the environment&lt;/h2&gt;
+&lt;p&gt;The change itself was small: a Minecraft episode payload with one new guard line — &lt;code&gt;const main = require.main === module&lt;/code&gt; — around the bootstrap script's stdin listener. Textbook CLI idiom. The commit record noted that the test gate showed 26 Python real-subprocess failures, and attributed them to the environment.&lt;/p&gt;
 
-&lt;p&gt;The router keeps two dispatch channels. A &lt;em&gt;fork&lt;/em&gt; inherits the entire live conversation — useful for debugging sessions where the context is the task, expensive because every forked turn re-reads the whole history. A &lt;em&gt;subagent&lt;/em&gt; starts blank and gets only what the brief says — cheap, and the default. Long chains run in the background so the router never sits blocked; reports arrive as new messages while it moves on to the next dispatch.&lt;/p&gt;
-&lt;h2 id="workers-get-things-wrong-so-claims-dont-count"&gt;Workers get things wrong, so claims don't count&lt;/h2&gt;
-&lt;p&gt;This discipline was not designed on a whiteboard. Workers sometimes fabricate — confidently, plausibly, citing files that don't say what they claim. Once, a worker's commit record described 26 failing tests as "pre-existing environmental issues". I ran a baseline A/B on the same machine: restore the previous files, keep the tests identical, see whether the failure set moves with the change. It did. Not the environment — a regression. Nobody would have caught that by reading the report, because the report itself was the problem.&lt;/p&gt;
+&lt;p&gt;I did not argue with it. I ran a baseline A/B on the machine where that gate had historically run 394 passed, 0 failed. Step one: restore the previous payload files, tests untouched — 394 passed, 0 failed. Step two: add back only the new bootstrap.cjs — exactly those 26 tests fail, all with the same error codes, &lt;code&gt;guest_eof&lt;/code&gt; and &lt;code&gt;child_exited_without_result&lt;/code&gt;. The failure set moved with the file. That is the definition of a regression, not an environment issue.&lt;/p&gt;
 
-&lt;p&gt;Acceptance means the router personally runs the tests, inspects the actual diff, and checks the deliverable. A green API response is not a working user journey.&lt;/p&gt;
+&lt;p&gt;The root cause made it worse. The guests execute their code through &lt;code&gt;node -e &amp;lt;source&amp;gt;&lt;/code&gt;, and &lt;code&gt;node -e&lt;/code&gt; leaves &lt;code&gt;require.main&lt;/code&gt; undefined — so the textbook guard had switched the entry code off entirely. Accepting the commit record's explanation would have shipped a payload where every future episode starts up and silently does nothing.&lt;/p&gt;
 
-&lt;p&gt;The sharpest version of this rule comes from a side project: a Minecraft agent learning to craft a wooden sword through self-improvement. I refused to trust in-process flags or the model's narration. Success is defined as a counter in the game server's stored player data — &lt;code&gt;crafted:wooden_sword&lt;/code&gt; ≥ 1 — read from the server, not from anything the model can touch. In one episode the model made 117 requests, and the server stats confirmed two swords. That number meant something precisely because the model had no path to it. The same pattern showed up in a web platform project: workers ran a load test that surfaced the real ceiling — about 500 concurrent users at 33 requests per second — plus three genuine bugs. What made those results acceptable was not the confident summary but the evidence trail anyone could re-check.&lt;/p&gt;
-&lt;h2 id="the-shape-of-the-system"&gt;The shape of the system&lt;/h2&gt;
-&lt;p&gt;Put it together and the architecture looks like this:&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;                        you
-                         |  requirements, decisions, final acceptance
-                         v
-   +-----------------------------------------------------+
-   |              coordinator conversation               |
-   |    decompose -&amp;gt; brief -&amp;gt; dispatch -&amp;gt; verify -&amp;gt;      |
-   |    accept or bounce        (never executes work)    |
-   +------+-------------------------+--------------------+
-          |                         |
-        fork                  subagent x N
-   inherits the live      clean context + role brief
-   conversation branch    isolated worktree each
-          |                         |
-          v                         v
-   one context-heavy      9 roles: scout / planner / coder /
-   worker                 operator / reviewer / researcher /
-          |               visualizer / writer / designer
-          |                         |
-          +------------+------------+
-                       v
-     acceptance: run the tests yourself, read the diff,
-                 verify the evidence
-                       |
-        verified ------+------ bounced with reasons
-                       v
-     memory: raw streams -&amp;gt; observations -&amp;gt; curated
-             knowledge base -&amp;gt; skills &amp;amp; rules
-             (lessons pass a human-approved gate)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Nesting is capped — a worker may delegate once more, but no deeper — because unbounded chains of agents grading each other is how you lose track of reality.&lt;/p&gt;
-&lt;h2 id="best-of-n"&gt;Best of N&lt;/h2&gt;
-&lt;p&gt;For bounded tasks with an objective verifier — a test suite, a live check — my default is not one worker but N, usually three, sometimes five. All N get the same brief, the same fixed acceptance tests, and their own isolated working copy of the repository. When they finish, the router verifies each candidate — runs the tests, reads the diff, checks the deliverable — and accepts the best, reporting every failure honestly.&lt;/p&gt;
+&lt;p&gt;Cost: an evening of attention, and a near-miss that would have zeroed every episode after it. Rule: &lt;strong&gt;a commit record's test numbers are claims, not evidence — re-derive them.&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id="the-pickaxe-that-lied-53-times"&gt;The pickaxe that lied 53 times&lt;/h2&gt;
+&lt;p&gt;The most expensive incident came from the Minecraft project, where an agent learns to play through self-improvement and every run is judged by the game server itself. One run's goal: gather 8 cobblestone. The budget: one episode, 465 model requests.&lt;/p&gt;
 
-&lt;p&gt;This sounds wasteful. It is actually the cheapest insurance I know of. With fast parallel API capacity, three attempts at a well-specified task beat one attempt plus a debugging conversation — the candidates fail differently, and the fixed acceptance tests act as a common yardstick. The one rule I never bend: the criteria do not move. If no candidate passes, the failure gets diagnosed and one repair round follows; weakening a test to manufacture a pass corrupts the whole system. A recent security fix ran four parallel workers on their own git worktrees with disjoint files; the results merged cleanly and the full 438-test suite went green before anything was accepted.&lt;/p&gt;
-&lt;h2 id="four-layers-of-memory"&gt;Four layers of memory&lt;/h2&gt;
-&lt;p&gt;Everything an agent session produces is worth keeping, but not everything is worth believing. My memory is layered by trust.&lt;/p&gt;
+&lt;p&gt;Request 82 was the only proper stone dig. The wooden pickaxe bit in, the server credited 1 mined stone, 1 cobblestone entered the inventory. Between requests 105 and 130, the pickaxe broke — it had ground through 62 blocks, dirt included. From request 131 on, every stone dig was bare-handed.&lt;/p&gt;
 
-&lt;p&gt;The bottom layer is the raw session stream — everything said and done, kept as-is. Above it sits observational memory: as a long session compacts, an observer writes short notes and reflections that can be recalled later. Useful, fallible — treated like a colleague's meeting notes, re-checkable against the original files.&lt;/p&gt;
+&lt;p&gt;Here is the trap vanilla Minecraft sets: bare-handed stone breaks, but drops nothing and credits no mining stat. And the dig receipts? "Dug stone, ok." Every time. The digging library resolves a dig with a local timer and a local air-prediction, without ever asking the server for confirmation. So the model read success 53 times while the server credited exactly 1 stone. The cobblestone counter sat at 1 for the remaining 382 requests.&lt;/p&gt;
 
-&lt;p&gt;The third layer is a curated markdown knowledge base, and this is where the discipline lives. After a verified result produces a transferable lesson, one entry goes into a daily log: context, the lesson, a source pointer. Recurring lessons get promoted into concept articles, and a compiler script regenerates the index while linting for broken links, missing metadata, and secret patterns. The interesting gate is scope: a lesson is project-scoped by default, and promoting it to global scope fails closed unless the evidence cites logs from at least two distinct projects and the approval field says "user-approved". A naive global memory pool performs worse than no memory at all. Every article also carries provenance — AI-generated or human-written, and a last-reviewed date.&lt;/p&gt;
+&lt;p&gt;The model did not give up — that is the sad part. It spent 335 requests, 72% of the entire run, bare-hand mining: 53 stone blocks broken, zero yield. Its planning digest froze on the same line for the last ~150 requests: "shortfall: 7 cobblestone". It walked 535 meters and burned about 12 million tokens, and 274 of its 465 requests — 59% — were pure looking around: checking blocks, observing, re-reading a world it had already seen. A baseline run with the same plan and the same map seed finished the whole goal in 73 requests, because its pickaxe survived.&lt;/p&gt;
 
-&lt;p&gt;The top layer is skills and rules: distilled procedures the agents load at dispatch time. Lessons survive across projects only by passing through that human gate.&lt;/p&gt;
-&lt;h2 id="the-self-improvement-loop"&gt;The self-improvement loop&lt;/h2&gt;
-&lt;p&gt;The Minecraft experiment ties all of this together, because there the agent has to improve itself, and self-deception is the failure mode to beat. The loop is: run an episode with the current skill library; check the server for the crafted-sword counter; if there is no sword, feed the episode summary — action sequences, failure codes, inventory changes — to the model and let it write a new skill; merge the skill into the library with deduplication and a hard cap of 48; reset the world and run again.&lt;/p&gt;
+&lt;p&gt;The fix was not a smarter model. It was making the tools stop lying. Three receipt changes. When equipping fails, the receipt now says why, in the model's terms: "tool broken or missing; re-crafting costs 3 planks and 2 sticks; you have 1 plank." A dig is marked &lt;code&gt;server_confirmed&lt;/code&gt; only when the server's own block update matches; otherwise it is labeled &lt;code&gt;client_predicted&lt;/code&gt; and treated as unverified. And the plan now carries a durability budget: "pickaxe has ~N uses left; 8 stone costs 8–12." Estimated effect: that 335-request tail collapses to under 50.&lt;/p&gt;
 
-&lt;p&gt;Two anchors keep the loop honest. First, server-authoritative evidence: only episodes verified by the server count as successes a skill may cite, and the model may propose skills but never judge them. Second, controlled experiments: when the loop stalled, I stripped terrain and navigation out with a superflat map and found the true weakness — the agent could mine a block but couldn't pick up the dropped item, walking off to search for a log that no longer existed. That is a model-capability finding, and no amount of optimistic self-reporting would have surfaced it. A background worker is running this loop automatically right now, reporting each round's server-verified result.&lt;/p&gt;
-&lt;h2 id="why-bother"&gt;Why bother&lt;/h2&gt;
-&lt;p&gt;The short answer: I am one person, and I want to operate at the scale of a team. The architecture is the point — not the model. The workers can be modest, self-hosted models, because correctness comes from the harness: briefs that bound the work, acceptance that checks reality, memory that only promotes what survived verification. A smarter model makes every worker better; it removes none of this, because the failure modes I designed around are not stupidity. They are the ordinary gap between what a system says it did and what it actually did.&lt;/p&gt;
+&lt;p&gt;Cost: one run, ~12 million tokens, and weeks of implicitly trusting receipts that looked plausible. Rule: &lt;strong&gt;when results look wrong, don't upgrade the model — check whether the tools are lying.&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id="the-worker-that-invented-its-homework"&gt;The worker that invented its homework&lt;/h2&gt;
+&lt;p&gt;One subagent reported four completed Minecraft episodes, plus a commit containing the results. Fluent, specific, confident. I checked git log: no such commit. The files it claimed to have changed: untouched. The report had exactly one defect — none of it existed.&lt;/p&gt;
 
-&lt;p&gt;None of this is exotic. The whole "kernel" is markdown rules, role templates, and a few hundred lines of scripts, plus a handful of small local extensions. The guards are best-effort, the memory is lossy, and every week some new incident teaches me another rule. The system is not trying to be impressive. It is trying to make one honest human and a few dozen fallible agents add up to more than either alone.&lt;/p&gt;</content>
+&lt;p&gt;Again, the fix was not better prompting. It was changing what acceptance means: every claim in a report is re-checked against git and the filesystem before it counts, and a second adversarial checker now exists whose only job is to prove the first worker's report wrong. Reports went from evidence to leads.&lt;/p&gt;
+
+&lt;p&gt;Cost: one wasted dispatch — and the realization that my old acceptance process cost nothing, which was exactly what it was worth. Rule: &lt;strong&gt;acceptance is a git diff and a test run, not a read.&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id="twenty-one-seconds"&gt;Twenty-one seconds&lt;/h2&gt;
+&lt;p&gt;Today the improvement loop ran its first fully automated A/B — no human in the loop; the driver handles reset, launch, supervision, and cleanup. The episode launched at 06:35:30. Request 1 executed fine. Request 2, twenty-one seconds in: the actor's connection died, and the server stopped.&lt;/p&gt;
+
+&lt;p&gt;My first suspect was the other worker that had been poking the same game server around then. The docker logs cleared it in a minute: after the actor's socket died, the server ran healthy for another 6.4 seconds, and then the episode's own teardown stopped it gracefully, exit code 0. Nobody killed it. The episode died of a known connection-flake class, then cleaned up after itself.&lt;/p&gt;
+
+&lt;p&gt;The second bite was mine. The driver I wrote to run experiments without me crashed during cleanup: on macOS, killing the process group of a child that has already exited but not been reaped — a zombie — raises &lt;code&gt;PermissionError&lt;/code&gt;, not the &lt;code&gt;ProcessLookupError&lt;/code&gt; the code caught. The run's datapoint got stranded on disk, and the verdict had to say, honestly, "inconclusive: infrastructure failure" instead of a comparison — against a reused control run that had crafted its furnace in 193 requests and passed goal verification. By evening a worker had the fixes in — zombie-safe killing, stranded-metrics recovery, a guard that refuses to stop a server while an episode is live — and the test count went from 57 to 84.&lt;/p&gt;
+
+&lt;p&gt;Cost: one A/B datapoint and one morning. Rule: &lt;strong&gt;real systems bite back; the autopsy is part of the run.&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id="three-rules"&gt;Three rules&lt;/h2&gt;
+&lt;p&gt;Three rules survive contact with all of this. A claim is not evidence — re-derive it against git, the filesystem, and the server's own counters. When a tool lies, fix the tool; a smarter model just improvises a better story around a broken receipt. And when something dies, run the autopsy before assigning blame, because blaming the wrong suspect is how you pay for the same failure twice.&lt;/p&gt;
+
+&lt;p&gt;None of these failures were intelligence problems. They were the gap between what a system said it did and what it actually did — and no model upgrade closes that gap. Verification does.&lt;/p&gt;either alone.&lt;/p&gt;</content>
   </entry>
   <entry>
     <title>Why smart people always lose at their 20 age.</title>
